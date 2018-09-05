@@ -17,6 +17,8 @@
 #ifndef KMIP_REQUEST_H
 #define KMIP_REQUEST_H
 
+typedef struct _kmip_request_t kmip_request_t;
+
 kmip_request_t *
 kmip_request_new (void);
 void

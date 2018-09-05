@@ -389,8 +389,6 @@ typedef enum {
    kmip_credential_type_attestation = 0x3
 } kmip_credential_type_t;
 
-typedef struct _kmip_request_t kmip_request_t;
-
 #include "kmip_request.h"
 
 #endif /* KMIP_MESSAGE_H */
