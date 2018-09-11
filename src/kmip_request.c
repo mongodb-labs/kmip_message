@@ -37,7 +37,7 @@ struct _kmip_request_t {
    char error[512];
 };
 
-inline void
+static inline void
 set_error (kmip_request_t *msg, const char *fmt, ...)
 {
    va_list va;

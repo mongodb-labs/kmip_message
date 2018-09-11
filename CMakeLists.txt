@@ -6,6 +6,8 @@ set (CMAKE_C_STANDARD 90)
 add_library (
    kmip_message SHARED
    src/kmip_message.h
+   src/kmip_parser.c
+   src/kmip_parser.h
    src/kmip_request.c
    src/kmip_request.h
 )
@@ -17,9 +19,21 @@ if (KMIP_MSG_BIG_ENDIAN)
 endif ()
 
 add_executable (
-   kmip_message_test
-   test/kmip_test.c
+   test_kmip_parser
+   test/hexlify.c
+   test/hexlify.h
+   test/test_kmip_parser.c
 )
 
-target_link_libraries (kmip_message_test kmip_message)
-target_include_directories (kmip_message_test PRIVATE ${PROJECT_SOURCE_DIR})
+target_link_libraries (test_kmip_parser kmip_message)
+target_include_directories (test_kmip_parser PRIVATE ${PROJECT_SOURCE_DIR})
+
+add_executable (
+   test_kmip_request
+   test/hexlify.c
+   test/hexlify.h
+   test/test_kmip_request.c
+)
+
+target_link_libraries (test_kmip_request kmip_message)
+target_include_directories (test_kmip_request PRIVATE ${PROJECT_SOURCE_DIR})

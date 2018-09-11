@@ -18,27 +18,27 @@
 #define KMIP_PRIVATE_H
 
 #ifdef KMIP_MSG_BIG_ENDIAN
-inline uint32_t
-uint32_to_be (uint32_t v)
+static inline uint32_t
+uint32_swap_endianness (uint32_t v)
 {
    return v;
 }
 
-inline uint64_t
-uint64_to_be (uint64_t v)
+static inline uint64_t
+uint64_swap_endianness (uint64_t v)
 {
    return v;
 }
 #else
-inline uint32_t
-uint32_to_be (uint32_t v)
+static inline uint32_t
+uint32_swap_endianness (uint32_t v)
 {
    return ((v & 0x000000FFU) << 24) | ((v & 0x0000FF00U) << 8) |
           ((v & 0x00FF0000U) >> 8) | ((v & 0xFF000000U) >> 24);
 }
 
-inline uint64_t
-uint64_to_be (uint64_t v)
+static inline uint64_t
+uint64_swap_endianness (uint64_t v)
 {
    return ((v & 0x00000000000000FFULL) << 56) |
           ((v & 0x000000000000FF00ULL) << 40) |
@@ -50,4 +50,10 @@ uint64_to_be (uint64_t v)
           ((v & 0xFF00000000000000ULL) >> 56);
 }
 #endif /* KMIP_MSG_BIG_ENDIAN */
+
+#define uint32_to_be uint32_swap_endianness
+#define uint32_from_be uint32_swap_endianness
+#define uint64_to_be uint64_swap_endianness
+#define uint64_from_be uint64_swap_endianness
+
 #endif /* KMIP_PRIVATE_H */
