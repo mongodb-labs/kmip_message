@@ -14,44 +14,17 @@
  * limitations under the License.
  */
 
-#include "hexlify.h"
+#include <stdint.h>
+#include <stdlib.h>
 
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
+#define RUN_TEST(_func)        \
+   do {                        \
+      printf ("%s\n", #_func); \
+      _func ();                \
+   } while (0)
 
 
 char *
-hexlify (uint8_t *buf, size_t len)
-{
-   char *hex_chars = malloc (len * 2 + 1);
-   char *p = hex_chars;
-   size_t i;
-
-   for (i = 0; i < len; i++) {
-      p += sprintf (p, "%02X", buf[i]);
-   }
-
-   *p = '\0';
-
-   return hex_chars;
-}
-
+hexlify (uint8_t *buf, size_t len);
 uint8_t *
-unhexlify (const char *hex_chars, size_t *len)
-{
-   uint8_t *buf;
-   uint8_t *pos;
-
-   *len = strlen (hex_chars) / 2;
-   buf = malloc (*len);
-   pos = buf;
-
-   while (*hex_chars) {
-      assert (1 == sscanf (hex_chars, "%2hhx", pos));
-      pos++;
-      hex_chars += 2;
-   }
-
-   return buf;
-}
+unhexlify (const char *hex_chars, size_t *len);

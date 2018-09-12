@@ -20,8 +20,8 @@ endif ()
 
 add_executable (
    test_kmip_parser
-   test/hexlify.c
-   test/hexlify.h
+   test/test_kmip.c
+   test/test_kmip.h
    test/test_kmip_parser.c
 )
 
@@ -30,8 +30,8 @@ target_include_directories (test_kmip_parser PRIVATE ${PROJECT_SOURCE_DIR})
 
 add_executable (
    test_kmip_request
-   test/hexlify.c
-   test/hexlify.h
+   test/test_kmip.c
+   test/test_kmip.h
    test/test_kmip_request.c
 )
 

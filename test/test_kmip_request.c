@@ -15,7 +15,7 @@
  */
 
 #include "src/kmip_message.h"
-#include "hexlify.h"
+#include "test_kmip.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -25,18 +25,12 @@
 
 
 static void
-msg_test (const char *test_name,
-          uint8_t *expected,
-          size_t expected_len,
-          kmip_request_t *msg)
+msg_test (uint8_t *expected, size_t expected_len, kmip_request_t *msg)
 {
    uint8_t *buf;
    uint32_t len;
    char *hex_expected;
    char *hex_buf;
-
-   printf ("%s\n", test_name);
-
    if (kmip_request_get_error (msg)) {
       fprintf (stderr, "Error: [%s]\n", kmip_request_get_error (msg));
       abort ();
@@ -70,7 +64,7 @@ spec_test_0 (void)
                                   &len);
    kmip_request_t *msg = kmip_request_new ();
    assert (kmip_request_add_int (msg, 0x420020, 8));
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    kmip_request_destroy (msg);
    free (expected);
 }
@@ -87,7 +81,7 @@ spec_test_1 (void)
                                   &len);
    kmip_request_t *msg = kmip_request_new ();
    assert (kmip_request_add_long (msg, 0x420020, 123456789000000000L));
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    kmip_request_destroy (msg);
    free (expected);
 }
@@ -109,7 +103,7 @@ spec_test_2 (void)
    uint8_t *big_int = unhexlify ("03FD35EB6BC2DF4618080000", &big_int_len);
    assert (kmip_request_add_big_int (
       msg, 0x420020, big_int, (uint32_t) big_int_len));
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    kmip_request_destroy (msg);
    free (big_int);
    free (expected);
@@ -128,7 +122,7 @@ spec_test_3 (void)
                                   &len);
    kmip_request_t *msg = kmip_request_new ();
    assert (kmip_request_add_enum (msg, 0x420020, 255));
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    kmip_request_destroy (msg);
    free (expected);
 }
@@ -145,7 +139,7 @@ spec_test_4 (void)
                                   &len);
    kmip_request_t *msg = kmip_request_new ();
    assert (kmip_request_add_bool (msg, 0x420020, true));
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    kmip_request_destroy (msg);
    free (expected);
 }
@@ -164,7 +158,7 @@ spec_test_5 (void)
    kmip_request_t *msg = kmip_request_new ();
    assert (kmip_request_add_text (
       msg, 0x420020, (uint8_t *) "Hello World", 11 /* omit nil */));
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    kmip_request_destroy (msg);
    free (expected);
 }
@@ -183,7 +177,7 @@ spec_test_6 (void)
    kmip_request_t *msg = kmip_request_new ();
    assert (kmip_request_add_bytes (
       msg, 0x420020, (uint8_t *) "\x01\x02\x03", 3 /* omit nil */));
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    kmip_request_destroy (msg);
    free (expected);
 }
@@ -206,7 +200,7 @@ spec_test_7 (void)
    kmip_request_t *msg = kmip_request_new ();
    assert (
       kmip_request_add_date_time (msg, 0x420020, (kmip_msg_date_time_t) epoch));
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    kmip_request_destroy (msg);
    free (expected);
 }
@@ -225,7 +219,7 @@ spec_test_8 (void)
    kmip_request_t *msg = kmip_request_new ();
    assert (
       kmip_request_add_interval (msg, 0x420020, 10 * 24 * 3600 /* seconds */));
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    kmip_request_destroy (msg);
    free (expected);
 }
@@ -255,7 +249,7 @@ spec_test_9 (void)
    assert (kmip_request_add_enum (msg, 0x420004, 254));
    assert (kmip_request_add_int (msg, 0x420005, 255));
    assert (kmip_request_end_struct (msg));
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    kmip_request_destroy (msg);
    free (expected);
 }
@@ -276,7 +270,7 @@ test_negative_big_int (void)
    uint8_t *big_int = unhexlify ("FFFFFF85", &big_int_len);
    assert (kmip_request_add_big_int (
       msg, 0x420020, big_int, (uint32_t) big_int_len));
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    free (big_int);
    kmip_request_destroy (msg);
    free (expected);
@@ -287,9 +281,6 @@ test_unclosed_struct (void)
 {
    uint32_t len;
    kmip_request_t *msg;
-
-   printf ("%s\n", __FUNCTION__);
-
    msg = kmip_request_new ();
    assert (kmip_request_begin_struct (msg, kmip_tag_request_message));
    assert (!kmip_request_get_data (msg, &len));
@@ -302,9 +293,6 @@ static void
 test_struct_end_error (void)
 {
    kmip_request_t *msg;
-
-   printf ("%s\n", __FUNCTION__);
-
    msg = kmip_request_new ();
    assert (kmip_request_begin_struct (msg, kmip_tag_request_message));
    assert (kmip_request_end_struct (msg));
@@ -407,7 +395,7 @@ test_request_get (void)
    assert (kmip_request_end_struct (msg)); /* request_payload */
    assert (kmip_request_end_struct (msg)); /* batch_item */
    assert (kmip_request_end_struct (msg)); /* request_message */
-   msg_test (__FUNCTION__, expected, len, msg);
+   msg_test (expected, len, msg);
    kmip_request_destroy (msg);
    free (expected);
 }
@@ -415,18 +403,18 @@ test_request_get (void)
 int
 main (void)
 {
-   spec_test_0 ();
-   spec_test_1 ();
-   spec_test_2 ();
-   spec_test_3 ();
-   spec_test_4 ();
-   spec_test_5 ();
-   spec_test_6 ();
-   spec_test_7 ();
-   spec_test_8 ();
-   spec_test_9 ();
-   test_negative_big_int ();
-   test_unclosed_struct ();
-   test_struct_end_error ();
-   test_request_get ();
+   RUN_TEST (spec_test_0);
+   RUN_TEST (spec_test_1);
+   RUN_TEST (spec_test_2);
+   RUN_TEST (spec_test_3);
+   RUN_TEST (spec_test_4);
+   RUN_TEST (spec_test_5);
+   RUN_TEST (spec_test_6);
+   RUN_TEST (spec_test_7);
+   RUN_TEST (spec_test_8);
+   RUN_TEST (spec_test_9);
+   RUN_TEST (test_negative_big_int);
+   RUN_TEST (test_unclosed_struct);
+   RUN_TEST (test_struct_end_error);
+   RUN_TEST (test_request_get);
 }
