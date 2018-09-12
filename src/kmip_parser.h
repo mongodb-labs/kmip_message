@@ -31,8 +31,10 @@ kmip_tag_t
 kmip_parser_tag (kmip_parser_t *parser);
 kmip_obj_type_t
 kmip_parser_type (kmip_parser_t *parser);
-kmip_parser_t *
-kmip_parser_read_struct (kmip_parser_t *parser);
+bool
+kmip_parser_descend (kmip_parser_t *parser);
+bool
+kmip_parser_ascend (kmip_parser_t *parser);
 bool
 kmip_parser_read_int (kmip_parser_t *parser, kmip_msg_int_t *v);
 bool
