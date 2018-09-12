@@ -50,6 +50,9 @@ msg_test (const char *test_name,
       fprintf (stderr, "Expected: %s\n  Actual: %s\n", hex_expected, hex_buf);
       abort ();
    }
+
+   free (hex_buf);
+   free (hex_expected);
 }
 
 /* tests from kmip spec version 1.4, section 9.1.2 "examples" */
@@ -108,6 +111,7 @@ spec_test_2 (void)
       msg, 0x420020, big_int, (uint32_t) big_int_len));
    msg_test (__FUNCTION__, expected, len, msg);
    kmip_request_destroy (msg);
+   free (big_int);
    free (expected);
 }
 
@@ -188,7 +192,7 @@ spec_test_6 (void)
 static void
 spec_test_7 (void)
 {
-   struct tm tm;
+   struct tm tm = {0};
    time_t epoch;
    size_t len;
    uint8_t *expected = unhexlify ("420020"            /* tag */
@@ -291,6 +295,7 @@ test_unclosed_struct (void)
    assert (!kmip_request_get_data (msg, &len));
    assert (strstr (kmip_request_get_error (msg),
                    "Cannot call kmip_request_get_data"));
+   kmip_request_destroy (msg);
 }
 
 static void
@@ -306,6 +311,7 @@ test_struct_end_error (void)
    assert (!kmip_request_end_struct (msg));
    assert (strstr (kmip_request_get_error (msg),
                    "Too many calls to kmip_request_end_struct"));
+   kmip_request_destroy (msg);
 }
 
 /* a "get" request for object with unique id "1" */
