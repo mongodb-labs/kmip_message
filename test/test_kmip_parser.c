@@ -697,4 +697,6 @@ main (void)
    RUN_TEST (test_descend_wrong_type);
    RUN_TEST (test_too_many_ascends);
    RUN_TEST (test_request_get);
+
+   return 0;
 }

@@ -417,4 +417,6 @@ main (void)
    RUN_TEST (test_unclosed_struct);
    RUN_TEST (test_struct_end_error);
    RUN_TEST (test_request_get);
+
+   return 0;
 }
