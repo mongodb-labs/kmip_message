@@ -17,6 +17,7 @@
 #include "kmip_message.h"
 #include "kmip_private.h"
 
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -73,6 +74,9 @@ reserve_buf (kmip_request_t *msg, uint32_t length)
       msg->buf_len = next_length;
       msg->buf = realloc (msg->buf, (size_t) next_length);
       if (!msg->buf) {
+         set_error (
+            msg, "Could not grow message to %" PRIu32 " bytes", next_length);
+         return false;
       }
    }
 
