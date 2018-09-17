@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "kmip_message.h"
-#include "kmip_private.h"
+#include "kmip_message/kmip_message.h"
+#include "kmip_message/kmip_private.h"
 
 #include <assert.h>
 #include <stdarg.h>
@@ -266,7 +266,7 @@ kmip_parser_read_int (kmip_parser_t *parser, kmip_msg_int_t *v)
 
    CHECK_TYPE (kmip_obj_type_integer);
 
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Integers are encoded as four-byte long (32 bit) binary signed numbers in
     * 2's complement notation, transmitted big-endian. */
    memcpy (&v_be, parser->stack->value, 4);
@@ -281,7 +281,7 @@ kmip_parser_read_long (kmip_parser_t *parser, kmip_msg_long_t *v)
 
    CHECK_TYPE (kmip_obj_type_long_integer);
 
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Long Integers are encoded as eight-byte long (64 bit) binary signed
     * numbers in 2's complement notation, transmitted big-endian. */
    memcpy (&v_be, parser->stack->value, 8);
@@ -296,7 +296,7 @@ kmip_parser_read_big_int (kmip_parser_t *parser,
 {
    CHECK_TYPE (kmip_obj_type_big_integer);
 
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Big Integers are encoded as a sequence of eight-bit bytes, in two's
     * complement notation, transmitted big-endian. If the length of the
     * sequence is not a multiple of eight bytes, then Big Integers SHALL be
@@ -315,7 +315,7 @@ kmip_parser_read_enum (kmip_parser_t *parser, kmip_msg_enum_t *v)
 
    CHECK_TYPE (kmip_obj_type_enumeration);
 
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Enumerations are encoded as four-byte long (32 bit) binary unsigned
     * numbers transmitted big-endian. Extensions, which are permitted, but are
     * not defined in this specification, contain the value 8 hex in the first
@@ -332,7 +332,7 @@ kmip_parser_read_bool (kmip_parser_t *parser, kmip_msg_bool_t *v)
 
    CHECK_TYPE (kmip_obj_type_boolean);
 
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Booleans are encoded as an eight-byte value that SHALL either contain the
     * hex value 0000000000000000, indicating the Boolean value False, or the
     * hex value 0000000000000001, transmitted big-endian, indicating the
@@ -347,7 +347,7 @@ kmip_parser_read_text (kmip_parser_t *parser, const uint8_t **v, uint32_t *len)
 {
    CHECK_TYPE (kmip_obj_type_text_string);
 
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Text Strings are sequences of bytes that encode character values
     * according to the UTF-8 encoding standard. There SHALL NOT be
     * null-termination at the end of such strings. */
@@ -361,7 +361,7 @@ kmip_parser_read_bytes (kmip_parser_t *parser, const uint8_t **v, uint32_t *len)
 {
    CHECK_TYPE (kmip_obj_type_byte_string);
 
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Byte Strings are sequences of bytes containing individual unspecified
     * eight-bit binary values, and are interpreted in the same sequence
     * order. */
@@ -377,7 +377,7 @@ kmip_parser_read_date_time (kmip_parser_t *parser, kmip_msg_date_time_t *v)
 
    CHECK_TYPE (kmip_obj_type_date_time);
 
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Date-Time values are POSIX Time values encoded as Long Integers. POSIX
     * Time, as described in IEEE Standard 1003.1, is the number of seconds since
     * the Epoch (1970 Jan 1, 00:00:00 UTC), not counting leap seconds. */
@@ -393,7 +393,7 @@ kmip_parser_read_interval (kmip_parser_t *parser, kmip_msg_interval_t *v)
 
    CHECK_TYPE (kmip_obj_type_interval);
 
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Intervals are encoded as four-byte long (32 bit) binary unsigned numbers,
     * transmitted big-endian. They have a resolution of one second. */
    memcpy (&v_be, parser->stack->value, 4);

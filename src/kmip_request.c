@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "kmip_message.h"
-#include "kmip_private.h"
+#include "kmip_message/kmip_message.h"
+#include "kmip_message/kmip_private.h"
 
 #include <inttypes.h>
 #include <stdarg.h>
@@ -133,7 +133,7 @@ add_value (kmip_request_t *msg, uint32_t obj_len, const uint8_t *value)
    memcpy (msg->pos, value, (size_t) obj_len);
    msg->pos += obj_len;
 
-   /* pad all objects to 8 bytes, kmip spec v1.4 section 9.1.1.3: item length */
+   /* pad all objects to 8 bytes, kmip_message spec v1.4 section 9.1.1.3: item length */
    if (obj_len % 8 != 0) {
       pad_len = 8 - obj_len % 8;
       memset (msg->pos, 0, pad_len);
@@ -249,7 +249,7 @@ kmip_request_add_int (kmip_request_t *msg,
                       kmip_request_tag_t tag,
                       kmip_msg_int_t v)
 {
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Integers are encoded as four-byte long (32 bit) binary signed numbers in
     * 2's complement notation, transmitted big-endian. */
    kmip_msg_int_t v_be = (kmip_msg_int_t) uint32_to_be ((uint32_t) v);
@@ -262,7 +262,7 @@ kmip_request_add_long (kmip_request_t *msg,
                        kmip_request_tag_t tag,
                        kmip_msg_long_t v)
 {
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Long Integers are encoded as eight-byte long (64 bit) binary signed
     * numbers in 2's complement notation, transmitted big-endian. */
    kmip_msg_long_t v_be = (kmip_msg_long_t) uint64_to_be ((uint64_t) v);
@@ -276,7 +276,7 @@ kmip_request_add_big_int (kmip_request_t *msg,
                           const uint8_t *v,
                           uint32_t len)
 {
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Big Integers are encoded as a sequence of eight-bit bytes, in two's
     * complement notation, transmitted big-endian. If the length of the
     * sequence is not a multiple of eight bytes, then Big Integers SHALL be
@@ -312,7 +312,7 @@ kmip_request_add_enum (kmip_request_t *msg,
                        kmip_request_tag_t tag,
                        kmip_msg_enum_t v)
 {
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Enumerations are encoded as four-byte long (32 bit) binary unsigned
     * numbers transmitted big-endian. Extensions, which are permitted, but are
     * not defined in this specification, contain the value 8 hex in the first
@@ -327,7 +327,7 @@ kmip_request_add_bool (kmip_request_t *msg,
                        kmip_request_tag_t tag,
                        kmip_msg_bool_t v)
 {
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Booleans are encoded as an eight-byte value that SHALL either contain the
     * hex value 0000000000000000, indicating the Boolean value False, or the
     * hex value 0000000000000001, transmitted big-endian, indicating the
@@ -343,7 +343,7 @@ kmip_request_add_text (kmip_request_t *msg,
                        const uint8_t *v,
                        uint32_t len)
 {
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Text Strings are sequences of bytes that encode character values
     * according to the UTF-8 encoding standard. There SHALL NOT be
     * null-termination at the end of such strings. */
@@ -356,7 +356,7 @@ kmip_request_add_bytes (kmip_request_t *msg,
                         const uint8_t *v,
                         uint32_t len)
 {
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Byte Strings are sequences of bytes containing individual unspecified
     * eight-bit binary values, and are interpreted in the same sequence
     * order. */
@@ -368,7 +368,7 @@ kmip_request_add_date_time (kmip_request_t *msg,
                             kmip_request_tag_t tag,
                             kmip_msg_date_time_t v)
 {
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Date-Time values are POSIX Time values encoded as Long Integers. POSIX
     * Time, as described in IEEE Standard 1003.1, is the number of seconds since
     * the Epoch (1970 Jan 1, 00:00:00 UTC), not counting leap seconds. */
@@ -382,7 +382,7 @@ kmip_request_add_interval (kmip_request_t *msg,
                            kmip_request_tag_t tag,
                            kmip_msg_interval_t v)
 {
-   /* kmip spec v1.4 section 9.1.1.4 "item value": */
+   /* kmip_message spec v1.4 section 9.1.1.4 "item value": */
    /* Intervals are encoded as four-byte long (32 bit) binary unsigned numbers,
     * transmitted big-endian. They have a resolution of one second. */
    kmip_msg_int_t v_be = (kmip_msg_int_t) uint32_to_be ((uint32_t) v);

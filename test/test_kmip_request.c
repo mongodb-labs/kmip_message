@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/kmip_message.h"
+#include "kmip_message/kmip_message.h"
 #include "test_kmip.h"
 
 #include <assert.h>
@@ -49,7 +49,7 @@ msg_test (uint8_t *expected, size_t expected_len, kmip_request_t *msg)
    free (hex_expected);
 }
 
-/* tests from kmip spec version 1.4, section 9.1.2 "examples" */
+/* tests from kmip_message spec version 1.4, section 9.1.2 "examples" */
 
 /* An Integer containing the decimal value 8 */
 static void
@@ -307,7 +307,7 @@ static void
 test_request_get (void)
 {
    size_t len;
-   /* see kmip spec v1.4 section 6 "message contents", and 7.2 "operations" */
+   /* see kmip_message spec v1.4 section 6 "message contents", and 7.2 "operations" */
    uint8_t *expected = unhexlify (
       "420078"           /* request message tag */
       "01"               /* struct type */
