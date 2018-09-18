@@ -690,6 +690,7 @@ static void
 test_parser_empty (void)
 {
    kmip_parser_t *parser = kmip_parser_new_from_data ((const uint8_t *) "", 0);
+   assert (8 == kmip_parser_want_bytes (parser));
    assert (!kmip_parser_next (parser));
    assert (!kmip_parser_get_error (parser));
    kmip_parser_destroy (parser);
@@ -744,6 +745,7 @@ feed_and_dump_test (const char *hex_chars, const char *filename)
       pos += r;
    } while (pos < len);
 
+   assert (0 == kmip_parser_want_bytes (parser));
    dump = kmip_parser_dump (parser);
 
    if (0 != stat (filename, &file_stat)) {

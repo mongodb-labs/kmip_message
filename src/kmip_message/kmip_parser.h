@@ -31,6 +31,8 @@ KMIP_MSG_EXPORT (const char *)
 kmip_parser_get_error (kmip_parser_t *parser);
 KMIP_MSG_EXPORT (bool)
 kmip_parser_feed (kmip_parser_t *parser, const uint8_t *data, size_t len);
+KMIP_MSG_EXPORT (uint32_t)
+kmip_parser_want_bytes (kmip_parser_t *parser);
 KMIP_MSG_EXPORT (bool)
 kmip_parser_next (kmip_parser_t *parser);
 KMIP_MSG_EXPORT (kmip_tag_t)

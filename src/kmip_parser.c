@@ -214,6 +214,8 @@ kmip_parser_get_error (kmip_parser_t *parser)
 bool
 kmip_parser_feed (kmip_parser_t *parser, const uint8_t *data, size_t len)
 {
+   size_t maxlen;
+
    if (parser->stack) {
       set_error (parser, "Cannot call kmip_parser_feed after kmip_parser_next");
       return false;
@@ -222,6 +224,10 @@ kmip_parser_feed (kmip_parser_t *parser, const uint8_t *data, size_t len)
    if (!parser->data) {
       parser->size = 128;
       parser->data = malloc (parser->size);
+   }
+
+   if (!len) {
+      return true;
    }
 
    if (parser->size < parser->len + len) {
@@ -238,10 +244,39 @@ kmip_parser_feed (kmip_parser_t *parser, const uint8_t *data, size_t len)
       }
    }
 
+   maxlen = kmip_parser_want_bytes (parser);
+   if (len > maxlen) {
+      len = maxlen;
+   }
+
    memcpy (parser->data + parser->len, data, len);
    parser->len += len;
 
    return true;
+}
+
+uint32_t
+kmip_parser_want_bytes (kmip_parser_t *parser)
+{
+   uint32_t msg_len;
+
+   if (parser->stack) {
+      set_error (parser, "Cannot call kmip_parser_want_bytes after kmip_parser_next");
+      return false;
+   }
+
+   if (parser->size < 8) {
+      return 8;
+   }
+
+   memcpy (&msg_len, &parser->data[4], 4);
+   msg_len = uint32_from_be (msg_len) + 8;
+   if (parser->len > msg_len) {
+      set_error (parser, "Internal error, parser->len > msg_len");
+      return false;
+   }
+
+   return msg_len - parser->len;
 }
 
 bool
