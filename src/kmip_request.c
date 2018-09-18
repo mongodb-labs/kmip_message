@@ -194,6 +194,8 @@ kmip_request_destroy (kmip_request_t *msg)
 uint8_t *
 kmip_request_get_data (kmip_request_t *msg, uint32_t *len)
 {
+   CHECK_FAILED;
+
    if (msg->obj_stack) {
       set_error (msg,
                  "%s",
