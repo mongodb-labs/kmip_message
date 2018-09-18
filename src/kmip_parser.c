@@ -42,6 +42,9 @@ typedef struct _parse_stack_t {
 struct _kmip_parser_t {
    bool failed;
    char error[512];
+   uint8_t *data;
+   size_t len;
+   size_t size;
    /* the current child object */
    parse_stack_t *stack;
 };
@@ -58,11 +61,20 @@ set_error (kmip_parser_t *parser, const char *fmt, ...)
    va_end (va);
 }
 
-#define CHECK_FAILED        \
-   do {                     \
-      if (parser->failed) { \
-         return false;      \
-      }                     \
+#define CHECK_FAILED                                                     \
+   do {                                                                  \
+      if (parser->failed) {                                              \
+         return false;                                                   \
+      } else if (!parser->stack) {                                       \
+         if (!parser->data) {                                            \
+            set_error (                                                  \
+               parser, "Call kmip_parser_feed before %s", __FUNCTION__); \
+         } else {                                                        \
+            set_error (                                                  \
+               parser, "Call kmip_parser_next before %s", __FUNCTION__); \
+         }                                                               \
+         return false;                                                   \
+      }                                                                  \
    } while (0)
 
 /* KMIP objects are TTLV encoded: tag, type, length, value. read the first 3. */
@@ -77,7 +89,6 @@ read_ttl (kmip_parser_t *parser)
    CHECK_FAILED;
 
    stack = parser->stack;
-   assert (stack);
    remaining = (stack->buf + stack->buf_len) - stack->pos;
    if (remaining == 0) {
       /* done */
@@ -128,8 +139,6 @@ read_value (kmip_parser_t *parser)
    CHECK_FAILED;
 
    stack = parser->stack;
-   assert (stack);
-
    stack->value = stack->pos;
    stack->pos += stack->value_len;
    if (stack->value_len % 8 != 0) {
@@ -162,14 +171,22 @@ parse_stack_push (kmip_parser_t *parser, const uint8_t *data, uint32_t len)
 }
 
 kmip_parser_t *
-kmip_parser_new (const uint8_t *data, uint32_t len)
+kmip_parser_new (void)
 {
    kmip_parser_t *p = malloc (sizeof (kmip_parser_t));
-
    p->failed = false;
    p->stack = NULL;
-   parse_stack_push (p, data, len);
+   p->data = NULL;
+   p->len = 0;
+   p->size = 0;
+   return p;
+}
 
+kmip_parser_t *
+kmip_parser_new_from_data (const uint8_t *data, uint32_t len)
+{
+   kmip_parser_t *p = kmip_parser_new ();
+   parse_stack_push (p, data, len);
    return p;
 }
 
@@ -184,6 +201,7 @@ kmip_parser_destroy (kmip_parser_t *parser)
       stack = parent;
    }
 
+   free (parser->data);
    free (parser);
 }
 
@@ -194,9 +212,53 @@ kmip_parser_get_error (kmip_parser_t *parser)
 }
 
 bool
+kmip_parser_feed (kmip_parser_t *parser, const uint8_t *data, size_t len)
+{
+   if (parser->stack) {
+      set_error (parser, "Cannot call kmip_parser_feed after kmip_parser_next");
+      return false;
+   }
+
+   if (!parser->data) {
+      parser->size = 128;
+      parser->data = malloc (parser->size);
+   }
+
+   if (parser->size < parser->len + len) {
+      parser->size = (size_t) next_power_of_2 ((uint32_t) (parser->len + len));
+      if (parser->data) {
+         parser->data = realloc (parser->data, parser->size);
+      } else {
+         parser->data = malloc (parser->size);
+      }
+
+      if (!parser->data) {
+         set_error (parser, "Could not allocate %zu bytes", parser->size);
+         return false;
+      }
+   }
+
+   memcpy (parser->data + parser->len, data, len);
+   parser->len += len;
+
+   return true;
+}
+
+bool
 kmip_parser_next (kmip_parser_t *parser)
 {
-   CHECK_FAILED;
+   if (parser->failed) {
+      return false;
+   }
+
+   if (!parser->stack) {
+      if (!parser->data) {
+         set_error (parser, "Call kmip_parser_feed before kmip_parser_next");
+         return false;
+      } else {
+         parse_stack_push (parser, parser->data, (uint32_t) parser->len);
+      }
+   }
 
    return read_ttl (parser) && read_value (parser);
 }
@@ -213,13 +275,16 @@ kmip_parser_type (kmip_parser_t *parser)
    return parser->stack->type;
 }
 
-#define CHECK_TYPE(_type)                                              \
-   do {                                                                \
-      CHECK_FAILED;                                                    \
-      if (parser->stack->type != (_type)) {                            \
-         set_error (parser, "called %s for wrong type", __FUNCTION__); \
-         return false;                                                 \
-      }                                                                \
+#define CHECK_TYPE(_type)                                                     \
+   do {                                                                       \
+      CHECK_FAILED;                                                           \
+      if (parser->stack->type == (kmip_obj_type_t) 0) {                       \
+         set_error (parser, "call kmip_parser_next before %s", __FUNCTION__); \
+         return false;                                                        \
+      } else if (parser->stack->type != (_type)) {                            \
+         set_error (parser, "called %s for wrong type", __FUNCTION__);        \
+         return false;                                                        \
+      }                                                                       \
    } while (0)
 
 bool
@@ -230,8 +295,6 @@ kmip_parser_descend (kmip_parser_t *parser)
    CHECK_FAILED;
 
    stack = parser->stack;
-   assert (stack);
-
    if (stack->type != kmip_obj_type_structure) {
       set_error (parser,
                  "cannot call kmip_parser_descend unless type is struct");
@@ -251,7 +314,6 @@ kmip_parser_ascend (kmip_parser_t *parser)
    CHECK_FAILED;
 
    stack = parser->stack;
-   assert (stack);
    if (!stack->parent) {
       set_error (parser, "too many calls to kmip_parser_ascend");
       return false;
@@ -432,12 +494,7 @@ kmip_parser_dump_append (kmip_parser_t *parser,
             parser, "Error formatting reply as string: %s", strerror (errno));
          return false;
       } else if (wanted >= remaining) {
-         if (*len * 2 > off + wanted) {
-            *len *= 2;
-         } else {
-            *len = off + wanted + 1;
-         }
-
+         *len = (size_t) next_power_of_2 ((uint32_t) (off + wanted + 1));
          *out = realloc (*out, *len);
          if (!*out) {
             set_error (parser, "Error reallocating string for dump");

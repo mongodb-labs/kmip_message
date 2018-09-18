@@ -62,15 +62,7 @@ reserve_buf (kmip_request_t *msg, uint32_t length)
 {
    uint32_t next_length = length;
    if (msg->buf_len < next_length) {
-      /* next power of 2 */
-      next_length--;
-      next_length |= next_length >> 1U;
-      next_length |= next_length >> 2U;
-      next_length |= next_length >> 4U;
-      next_length |= next_length >> 8U;
-      next_length |= next_length >> 16U;
-      next_length++;
-
+      next_length = next_power_of_2 (next_length);
       msg->buf_len = next_length;
       msg->buf = realloc (msg->buf, (size_t) next_length);
       if (!msg->buf) {
@@ -133,7 +125,8 @@ add_value (kmip_request_t *msg, uint32_t obj_len, const uint8_t *value)
    memcpy (msg->pos, value, (size_t) obj_len);
    msg->pos += obj_len;
 
-   /* pad all objects to 8 bytes, kmip_message spec v1.4 section 9.1.1.3: item length */
+   /* pad all objects to 8 bytes, kmip_message spec v1.4 section 9.1.1.3: item
+    * length */
    if (obj_len % 8 != 0) {
       pad_len = 8 - obj_len % 8;
       memset (msg->pos, 0, pad_len);

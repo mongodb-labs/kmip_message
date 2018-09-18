@@ -39,7 +39,7 @@ spec_test_0 (void)
                                "00000008"  /* value */
                                "00000000", /* padding */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_integer);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -61,7 +61,7 @@ spec_test_1 (void)
                                "00000008"          /* length */
                                "01B69B4BA5749200", /* value */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_long_integer);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -90,7 +90,7 @@ spec_test_2 (void)
       unhexlify ("0000000003FD35EB6BC2DF4618080000", &expected_len);
    size_t len;
    uint8_t *reply = unhexlify (BIG_INT, &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_big_integer);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -115,7 +115,7 @@ spec_test_3 (void)
                                "000000FF"  /* value */
                                "00000000", /* padding */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_enumeration);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -137,7 +137,7 @@ spec_test_4 (void)
                                "00000008"          /* length */
                                "0000000000000001", /* value */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_boolean);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -161,7 +161,7 @@ spec_test_5 (void)
                                "48656C6C6F20576F726C64" /* value */
                                "0000000000",            /* padding */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_text_string);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -188,7 +188,7 @@ spec_test_6 (void)
    const uint8_t *v;
    size_t len;
    uint8_t *reply = unhexlify (BYTES, &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_byte_string);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -215,7 +215,7 @@ spec_test_7 (void)
                                &len);
    assert (strptime ("2008-03-14 11:56:40 GMT", "%Y-%m-%d %H:%M:%S %Z", &tm));
    epoch = mktime (&tm);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_date_time);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -238,7 +238,7 @@ spec_test_8 (void)
                                "000D2F00"  /* value */
                                "00000000", /* padding */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_interval);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -271,7 +271,7 @@ spec_test_9 (void)
                                "000000FF"  /* int value */
                                "00000000", /* int padding */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_structure);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -308,7 +308,7 @@ test_negative_big_int (void)
                  "00000008"          /* length */
                  "FFFFFFFFFFFFFF85", /* left-padded with 1's + value */
                  &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_big_integer);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -332,7 +332,7 @@ test_empty_string (void)
                                "07"        /* type */
                                "00000000", /* length */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_text_string);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -354,7 +354,7 @@ test_empty_bytes (void)
                                "08"        /* type */
                                "00000000", /* length */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_byte_string);
    assert (kmip_parser_tag (parser) == 0x420020);
@@ -372,7 +372,7 @@ test_incomplete_header (void)
    uint8_t *reply = unhexlify ("420020" /* tag */
                                "08",    /* type */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (!kmip_parser_next (parser));
    assert (strstr (kmip_parser_get_error (parser), "not enough bytes"));
    kmip_parser_destroy (parser);
@@ -387,7 +387,7 @@ test_incomplete_value (void)
                                "08"        /* type */
                                "00000001", /* length */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (!kmip_parser_next (parser));
    assert (strstr (kmip_parser_get_error (parser), "not enough bytes"));
    kmip_parser_destroy (parser);
@@ -406,7 +406,7 @@ test_incomplete_nested_value (void)
                                "00000004" /* enum length */
                                "0000",    /* enum value */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (!kmip_parser_next (parser));
    assert (strstr (kmip_parser_get_error (parser), "not enough bytes"));
    kmip_parser_destroy (parser);
@@ -422,7 +422,7 @@ test_incomplete_padded_value (void)
                                "00000004"  /* length */
                                "000000FF", /* value */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (!kmip_parser_next (parser));
    assert (strstr (kmip_parser_get_error (parser), "not enough bytes"));
    kmip_parser_destroy (parser);
@@ -440,7 +440,7 @@ test_wrong_type (void)
                                "000000FF"  /* value */
                                "00000000", /* padding */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (!kmip_parser_read_int (parser, &v_int));
    assert (strstr (kmip_parser_get_error (parser), "wrong type"));
@@ -458,7 +458,7 @@ test_descend_wrong_type (void)
                                "000000FF"  /* value */
                                "00000000", /* padding */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (!kmip_parser_descend (parser));
    assert (strstr (kmip_parser_get_error (parser),
@@ -480,7 +480,7 @@ test_too_many_ascends (void)
                                "000000FE"  /* enum value */
                                "00000000", /* enum padding  */
                                &len);
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_descend (parser));
    assert (kmip_parser_ascend (parser));
@@ -563,7 +563,7 @@ test_request_get (void)
    uint32_t v_len;
    uint8_t *reply = unhexlify (GET_REQUEST, &len);
 
-   kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
+   kmip_parser_t *parser = kmip_parser_new_from_data (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_tag (parser) == kmip_tag_request_message);
    /*
@@ -677,21 +677,74 @@ test_request_get (void)
 }
 
 static void
-dump_test (const char *hex_chars, const char *filename)
+test_parser_next (void)
 {
-   char *dump;
+   kmip_parser_t *parser = kmip_parser_new ();
+   assert (!kmip_parser_next (parser));
+   assert (strstr (kmip_parser_get_error (parser),
+                   "kmip_parser_feed before kmip_parser_next"));
+   kmip_parser_destroy (parser);
+}
+
+static void
+test_parser_empty (void)
+{
+   kmip_parser_t *parser = kmip_parser_new_from_data ((const uint8_t *) "", 0);
+   assert (!kmip_parser_next (parser));
+   assert (!kmip_parser_get_error (parser));
+   kmip_parser_destroy (parser);
+
+   parser = kmip_parser_new ();
+   assert (kmip_parser_feed (parser, (const uint8_t *) "", 0));
+   assert (!kmip_parser_next (parser));
+   assert (!kmip_parser_get_error (parser));
+   kmip_parser_destroy (parser);
+}
+
+static void
+test_parser_not_started (void)
+{
+   kmip_msg_int_t v_int;
+   kmip_parser_t *parser = kmip_parser_new_from_data ((const uint8_t *) "", 0);
+   assert (!kmip_parser_read_int (parser, &v_int));
+   assert (strstr (kmip_parser_get_error (parser),
+                   "kmip_parser_next before kmip_parser_read_int"));
+}
+
+/* test kmip_parser_feed and kmip_parser_dump */
+static void
+feed_and_dump_test (const char *hex_chars, const char *filename)
+{
    size_t len;
    uint8_t *reply;
+   size_t r;
+   size_t pos;
    kmip_parser_t *parser;
+   unsigned int seed;
+   char *dump;
    struct stat file_stat;
    size_t f_size;
    FILE *f;
    char *file_contents;
 
    reply = unhexlify (hex_chars, &len);
-   parser = kmip_parser_new (reply, (uint32_t) len);
+   parser = kmip_parser_new ();
+   seed = (unsigned int) time (NULL);
+   printf ("seed %u\n", seed);
+   srandom (seed);
+
+   pos = 0;
+   do {
+      r = (size_t) (((double) random () / RAND_MAX) * len);
+      if (pos + r > len) {
+         r = len - pos;
+      }
+
+      kmip_parser_feed (parser, &reply[pos], r);
+      pos += r;
+   } while (pos < len);
+
    dump = kmip_parser_dump (parser);
-   printf ("%s", dump);
 
    if (0 != stat (filename, &file_stat)) {
       perror (filename);
@@ -738,10 +791,10 @@ dump_test (const char *hex_chars, const char *filename)
       _func ();                \
    } while (0)
 
-#define DUMP_TEST(_name)                               \
-   do {                                                \
-      printf ("test kmip_parser_dump (%s)\n", #_name); \
-      dump_test (_name, "test/" #_name ".txt");        \
+#define FEED_AND_DUMP_TEST(_name)                        \
+   do {                                                  \
+      printf ("test kmip_parser_dump (%s)\n", #_name);   \
+      feed_and_dump_test (_name, "test/" #_name ".txt"); \
    } while (0)
 
 int
@@ -768,9 +821,12 @@ main (void)
    RUN_TEST (test_descend_wrong_type);
    RUN_TEST (test_too_many_ascends);
    RUN_TEST (test_request_get);
-   DUMP_TEST (BIG_INT);
-   DUMP_TEST (BYTES);
-   DUMP_TEST (GET_REQUEST);
+   RUN_TEST (test_parser_next);
+   RUN_TEST (test_parser_empty);
+   RUN_TEST (test_parser_not_started);
+   FEED_AND_DUMP_TEST (BIG_INT);
+   FEED_AND_DUMP_TEST (BYTES);
+   FEED_AND_DUMP_TEST (GET_REQUEST);
 
    return 0;
 }

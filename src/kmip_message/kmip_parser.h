@@ -17,14 +17,20 @@
 #ifndef KMIP_PARSER_H
 #define KMIP_PARSER_H
 
+#include <stdlib.h>
+
 typedef struct _kmip_parser_t kmip_parser_t;
 
 kmip_parser_t *
-kmip_parser_new (const uint8_t *data, uint32_t len);
+kmip_parser_new (void);
+kmip_parser_t *
+kmip_parser_new_from_data (const uint8_t *data, uint32_t len);
 void
 kmip_parser_destroy (kmip_parser_t *parser);
 const char *
 kmip_parser_get_error (kmip_parser_t *parser);
+bool
+kmip_parser_feed (kmip_parser_t *parser, const uint8_t *data, size_t len);
 bool
 kmip_parser_next (kmip_parser_t *parser);
 kmip_tag_t

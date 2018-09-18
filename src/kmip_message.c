@@ -962,3 +962,21 @@ kmip_get_tag_name (kmip_tag_t tag)
 
    return strdup (name);
 }
+
+uint32_t
+next_power_of_2 (uint32_t i)
+{
+   if (i < 2) {
+      i = 1;
+   } else {
+      i--;
+   }
+
+   i |= i >> 1U;
+   i |= i >> 2U;
+   i |= i >> 4U;
+   i |= i >> 8U;
+   i |= i >> 16U;
+   i++;
+   return i;
+}
