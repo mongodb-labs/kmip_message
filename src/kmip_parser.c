@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "kmip_message/hexlify.h"
 #include "kmip_message/kmip_message.h"
 #include "kmip_message/kmip_private.h"
 
@@ -22,6 +23,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
+#include <errno.h>
+#include <time.h>
 
 typedef struct _parse_stack_t {
    struct _parse_stack_t *parent;
@@ -399,4 +403,201 @@ kmip_parser_read_interval (kmip_parser_t *parser, kmip_msg_interval_t *v)
    memcpy (&v_be, parser->stack->value, 4);
    *v = uint32_from_be ((uint32_t) v_be);
    return true;
+}
+
+static bool
+kmip_parser_dump_append (kmip_parser_t *parser,
+                         char **out,
+                         char **pos,
+                         size_t *len,
+                         const char *format,
+                         ...)
+{
+   va_list args;
+   size_t off;
+   int remaining;
+   int wanted;
+
+   assert (format);
+
+   off = *pos - *out;
+   remaining = (int) (*len - off);
+
+   while (true) {
+      va_start (args, format);
+      wanted = vsnprintf (*pos, remaining, format, args);
+      va_end (args);
+      if (wanted < 0) {
+         set_error (
+            parser, "Error formatting reply as string: %s", strerror (errno));
+         return false;
+      } else if (wanted >= remaining) {
+         if (*len * 2 > off + wanted) {
+            *len *= 2;
+         } else {
+            *len = off + wanted + 1;
+         }
+
+         *out = realloc (*out, *len);
+         if (!*out) {
+            set_error (parser, "Error reallocating string for dump");
+            return false;
+         }
+
+         /* point into new buffer */
+         *pos = *out + off;
+         remaining = (int) (*len - off);
+      } else {
+         *pos += wanted;
+         break;
+      }
+   }
+
+   return true;
+}
+
+static bool
+kmip_parser_dump_internal (
+   kmip_parser_t *parser, char **out, char **pos, size_t *len, int depth)
+{
+   char *type, *tag;
+   bool r = true;
+   kmip_msg_int_t v_int;
+   kmip_msg_long_t v_long;
+   const uint8_t *data;
+   uint32_t obj_len;
+   kmip_msg_enum_t v_enum;
+   kmip_msg_bool_t v_bool;
+   kmip_msg_date_time_t v_datetime;
+   kmip_msg_interval_t v_interval;
+   char *hex_chars;
+   struct tm *tm;
+   char time_buf[70];
+
+   while (kmip_parser_next (parser)) {
+      tag = kmip_get_tag_name (kmip_parser_tag (parser));
+      type = kmip_get_type_name (kmip_parser_type (parser));
+
+      if (kmip_parser_type (parser) == kmip_obj_type_structure) {
+         r = kmip_parser_dump_append (
+                parser, out, pos, len, "%*s%s", depth, "", tag) &&
+             kmip_parser_dump_append (parser, out, pos, len, "%s", "\n") &&
+             kmip_parser_descend (parser) &&
+             kmip_parser_dump_internal (parser, out, pos, len, depth + 4) &&
+             kmip_parser_ascend (parser);
+
+         free (tag);
+         free (type);
+      } else {
+         r = kmip_parser_dump_append (
+            parser, out, pos, len, "%*s%s %s ", depth, "", tag, type);
+
+         free (tag);
+         free (type);
+
+         if (!r) {
+            break;
+         }
+
+         switch (kmip_parser_type (parser)) {
+         case kmip_obj_type_integer:
+            r = kmip_parser_read_int (parser, &v_int) &&
+                kmip_parser_dump_append (
+                   parser, out, pos, len, "%" PRId32, v_int);
+            break;
+         case kmip_obj_type_long_integer:
+            r = kmip_parser_read_long (parser, &v_long) &&
+                kmip_parser_dump_append (
+                   parser, out, pos, len, "%" PRId64, v_long);
+            break;
+         case kmip_obj_type_big_integer:
+            if (!(r = kmip_parser_read_big_int (parser, &data, &obj_len))) {
+               break;
+            }
+
+            hex_chars = hexlify (data, obj_len);
+            r =
+               kmip_parser_dump_append (parser, out, pos, len, "%s", hex_chars);
+            free (hex_chars);
+            break;
+         case kmip_obj_type_enumeration:
+            r = kmip_parser_read_enum (parser, &v_enum) &&
+                kmip_parser_dump_append (
+                   parser, out, pos, len, "%" PRId32, v_enum);
+            break;
+         case kmip_obj_type_boolean:
+            r = kmip_parser_read_bool (parser, &v_bool) &&
+                kmip_parser_dump_append (
+                   parser, out, pos, len, "%s", v_bool ? "true" : "false");
+            break;
+         case kmip_obj_type_text_string:
+            r = kmip_parser_read_text (parser, &data, &obj_len) &&
+                kmip_parser_dump_append (
+                   parser, out, pos, len, "\"%.*s\"", obj_len, data);
+            break;
+         case kmip_obj_type_byte_string:
+            if (!(r = kmip_parser_read_bytes (parser, &data, &obj_len))) {
+               break;
+            }
+
+            hex_chars = hexlify (data, obj_len);
+            r =
+               kmip_parser_dump_append (parser, out, pos, len, "%s", hex_chars);
+            free (hex_chars);
+            break;
+         case kmip_obj_type_date_time:
+            if (!(r = kmip_parser_read_date_time (parser, &v_datetime))) {
+               break;
+            }
+
+            if (!(tm = localtime ((time_t *) &v_datetime)) ||
+                !strftime (
+                   time_buf, sizeof (time_buf), "%Y-%m-%d %H:%M:%S", tm)) {
+               set_error (parser, "%s", "Could not format time as localtime");
+               r = false;
+               break;
+            }
+
+            r = kmip_parser_dump_append (parser, out, pos, len, "%s", time_buf);
+            break;
+         case kmip_obj_type_interval:
+            r = kmip_parser_read_interval (parser, &v_interval) &&
+                kmip_parser_dump_append (
+                   parser, out, pos, len, "%" PRId32 " seconds", v_interval);
+            break;
+         default:
+            fprintf (stderr,
+                     "Unrecognized type in kmip_parser_dump: %d\n",
+                     kmip_parser_type (parser));
+            abort ();
+         }
+
+         if (!r) {
+            break;
+         }
+
+         if (!kmip_parser_dump_append (parser, out, pos, len, "%s", "\n")) {
+            return false;
+         }
+      }
+   }
+
+   return r;
+}
+
+char *
+kmip_parser_dump (kmip_parser_t *parser)
+{
+   size_t len = 512;
+   char *out = malloc (len);
+   char *pos = out;
+
+   out[0] = '\0';
+
+   if (!kmip_parser_dump_internal (parser, &out, &pos, &len, 0)) {
+      free (out);
+      return NULL;
+   }
+
+   return out;
 }

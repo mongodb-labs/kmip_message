@@ -57,4 +57,7 @@ bool
 kmip_parser_read_date_time (kmip_parser_t *parser, kmip_msg_date_time_t *v);
 bool
 kmip_parser_read_interval (kmip_parser_t *parser, kmip_msg_interval_t *v);
+char *
+kmip_parser_dump (kmip_parser_t *parser);
+
 #endif /* KMIP_PARSER_H */

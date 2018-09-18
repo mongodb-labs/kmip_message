@@ -9,11 +9,15 @@ set (CMAKE_C_STANDARD 90)
 
 add_library (
    kmip_message SHARED
+   src/kmip_message/hexlify.h
    src/kmip_message/kmip_message.h
-   src/kmip_parser.c
    src/kmip_message/kmip_parser.h
-   src/kmip_request.c
+   src/kmip_message/kmip_private.h
    src/kmip_message/kmip_request.h
+   src/hexlify.c
+   src/kmip_message.c
+   src/kmip_parser.c
+   src/kmip_request.c
 )
 
 include (TestBigEndian)
@@ -99,7 +103,8 @@ install (
 
 add_executable (
    test_kmip_parser
-   test/test_kmip.c
+   src/hexlify.c
+   src/kmip_message/hexlify.h
    test/test_kmip.h
    test/test_kmip_parser.c
 )
@@ -110,7 +115,8 @@ target_include_directories (
 
 add_executable (
    test_kmip_request
-   test/test_kmip.c
+   src/hexlify.c
+   src/kmip_message/hexlify.h
    test/test_kmip.h
    test/test_kmip_request.c
 )

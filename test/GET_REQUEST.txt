@@ -1,0 +1,16 @@
+request_message
+    request_header
+        protocol_version
+            protocol_version_major integer 1
+            protocol_version_minor integer 2
+        authentication
+            credential
+                credential_type enumeration 1
+                credential_value
+                    username text_string ""
+                    password text_string ""
+        batch_count integer 1
+    batch_item
+        operation enumeration 10
+        request_payload
+            unique_identifier text_string "1"

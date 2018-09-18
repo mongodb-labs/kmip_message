@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "kmip_message/hexlify.h"
 #include "kmip_message/kmip_message.h"
 #include "test_kmip.h"
 
@@ -21,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <time.h>
 
 /* tests from kmip_message spec version 1.4, section 9.1.2 "examples" */
@@ -72,6 +74,12 @@ spec_test_1 (void)
 
 /* A Big Integer containing the decimal value 1234567890000000000000000000 */
 /* see also test_negative_big_int */
+const char *BIG_INT = "420020"                           /* tag */
+                      "04"                               /* type */
+                      "00000010"                         /* length */
+                      "0000000003FD35EB6BC2DF4618080000" /* value */
+   ;
+
 static void
 spec_test_2 (void)
 {
@@ -81,11 +89,7 @@ spec_test_2 (void)
    uint8_t *expected_v =
       unhexlify ("0000000003FD35EB6BC2DF4618080000", &expected_len);
    size_t len;
-   uint8_t *reply = unhexlify ("420020"                            /* tag */
-                               "04"                                /* type */
-                               "00000010"                          /* length */
-                               "0000000003FD35EB6BC2DF4618080000", /* value */
-                               &len);
+   uint8_t *reply = unhexlify (BIG_INT, &len);
    kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_big_integer);
@@ -170,18 +174,20 @@ spec_test_5 (void)
 }
 
 /* A Byte String with the value { 0x01, 0x02, 0x03 } */
+const char *BYTES = "420020"     /* tag */
+                    "08"         /* type */
+                    "00000003"   /* length */
+                    "010203"     /* value */
+                    "0000000000" /* padding */
+   ;
+
 static void
 spec_test_6 (void)
 {
    uint32_t v_len;
    const uint8_t *v;
    size_t len;
-   uint8_t *reply = unhexlify ("420020"      /* tag */
-                               "08"          /* type */
-                               "00000003"    /* length */
-                               "010203"      /* value */
-                               "0000000000", /* padding */
-                               &len);
+   uint8_t *reply = unhexlify (BYTES, &len);
    kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
    assert (kmip_parser_type (parser) == kmip_obj_type_byte_string);
@@ -485,6 +491,67 @@ test_too_many_ascends (void)
    free (reply);
 }
 
+/* see kmip_message spec v1.4 section 6 "message contents", and 7.2
+ * "operations" */
+const char *GET_REQUEST =
+   "420078"           /* request message tag */
+   "01"               /* struct type */
+   "000000a8"         /* length */
+   "420077"           /* request header tag */
+   "01"               /* struct type */
+   "00000070"         /* length */
+   "420069"           /* protocol version tag */
+   "01"               /* struct type */
+   "00000020"         /* length */
+   "42006a"           /* protocol version major tag */
+   "02"               /* int type */
+   "00000004"         /* length */
+   "0000000100000000" /* value + padding */
+   "42006b02"         /* protocol version minor tag */
+   "00000004"         /* length */
+   "0000000200000000" /* value + padding */
+   /* END protocol version struct */
+   "42000c"           /* authentication tag */
+   "01"               /* struct type */
+   "00000030"         /* length */
+   "420023"           /* credential tag */
+   "01"               /* struct type */
+   "00000028"         /* length */
+   "420024"           /* credential type tag */
+   "05"               /* enum type */
+   "00000004"         /* length */
+   "0000000100000000" /* "username_and_password" value + padding */
+   "420025"           /* credential value tag */
+   "01"               /* struct type */
+   "00000010"         /* length */
+   "420099"           /* username tag */
+   "07"               /* text type */
+   "00000000"         /* length, no value */
+   "4200a1"           /* password tag */
+   "07"               /* text type */
+   "00000000"         /* length, no value */
+   /* END credential value, credential, auth structs */
+   "42000d"           /* batch count tag */
+   "02"               /* int type */
+   "00000004"         /* length */
+   "0000000100000000" /* value + padding */
+   "42000f"           /* batch item tag */
+   "01"               /* struct type */
+   "00000028"         /* length */
+   "42005c"           /* operation tag */
+   "05"               /* enum type */
+   "00000004"         /* length */
+   "0000000a00000000" /* "get" value + padding */
+   "420079"           /* request payload tag */
+   "01"               /* struct type */
+   "00000010"         /* length */
+   "420094"           /* unique identifier tag */
+   "07"               /* text type */
+   "00000001"         /* length */
+   "3100000000000000" /* ASCII "1" value + padding */
+   /* END request payload, batch item, request message structs */
+   ;
+
 /* a "get" request for object with unique id "1" */
 static void
 test_request_get (void)
@@ -494,65 +561,7 @@ test_request_get (void)
    kmip_msg_enum_t v_enum;
    const uint8_t *v_bytes;
    uint32_t v_len;
-   /* see kmip_message spec v1.4 section 6 "message contents", and 7.2 "operations" */
-   uint8_t *reply = unhexlify (
-      "420078"           /* request message tag */
-      "01"               /* struct type */
-      "000000a8"         /* length */
-      "420077"           /* request header tag */
-      "01"               /* struct type */
-      "00000070"         /* length */
-      "420069"           /* protocol version tag */
-      "01"               /* struct type */
-      "00000020"         /* length */
-      "42006a"           /* protocol version major tag */
-      "02"               /* int type */
-      "00000004"         /* length */
-      "0000000100000000" /* value + padding */
-      "42006b02"         /* protocol version minor tag */
-      "00000004"         /* length */
-      "0000000200000000" /* value + padding */
-      /* END protocol version struct */
-      "42000c"           /* authentication tag */
-      "01"               /* struct type */
-      "00000030"         /* length */
-      "420023"           /* credential tag */
-      "01"               /* struct type */
-      "00000028"         /* length */
-      "420024"           /* credential type tag */
-      "05"               /* enum type */
-      "00000004"         /* length */
-      "0000000100000000" /* "username_and_password" value + padding */
-      "420025"           /* credential value tag */
-      "01"               /* struct type */
-      "00000010"         /* length */
-      "420099"           /* username tag */
-      "07"               /* text type */
-      "00000000"         /* length, no value */
-      "4200a1"           /* password tag */
-      "07"               /* text type */
-      "00000000"         /* length, no value */
-      /* END credential value, credential, auth structs */
-      "42000d"            /* batch count tag */
-      "02"                /* int type */
-      "00000004"          /* length */
-      "0000000100000000"  /* value + padding */
-      "42000f"            /* batch item tag */
-      "01"                /* struct type */
-      "00000028"          /* length */
-      "42005c"            /* operation tag */
-      "05"                /* enum type */
-      "00000004"          /* length */
-      "0000000a00000000"  /* "get" value + padding */
-      "420079"            /* request payload tag */
-      "01"                /* struct type */
-      "00000010"          /* length */
-      "420094"            /* unique identifier tag */
-      "07"                /* text type */
-      "00000001"          /* length */
-      "3100000000000000", /* ASCII "1" value + padding */
-      /* END request payload, batch item, request message structs */
-      &len);
+   uint8_t *reply = unhexlify (GET_REQUEST, &len);
 
    kmip_parser_t *parser = kmip_parser_new (reply, (uint32_t) len);
    assert (kmip_parser_next (parser));
@@ -667,10 +676,72 @@ test_request_get (void)
    free (reply);
 }
 
+static void
+dump_test (const char *hex_chars, const char *filename)
+{
+   char *dump;
+   size_t len;
+   uint8_t *reply;
+   kmip_parser_t *parser;
+   struct stat file_stat;
+   size_t f_size;
+   FILE *f;
+   char *file_contents;
+
+   reply = unhexlify (hex_chars, &len);
+   parser = kmip_parser_new (reply, (uint32_t) len);
+   dump = kmip_parser_dump (parser);
+   printf ("%s", dump);
+
+   if (0 != stat (filename, &file_stat)) {
+      perror (filename);
+      abort ();
+   }
+
+   f = fopen (filename, "r");
+   if (!f) {
+      perror (filename);
+      abort ();
+   }
+
+   f_size = (size_t) file_stat.st_size;
+   file_contents = malloc (f_size + 1);
+   if (f_size != fread (file_contents, 1, f_size, f)) {
+      perror (filename);
+      abort ();
+   }
+
+   fclose (f);
+   file_contents[f_size] = '\0';
+
+   if (0 != strcmp (file_contents, dump)) {
+      fprintf (stderr,
+               "kmip_parser_dump unexpected output\n"
+               "Expected:\n"
+               "%s"
+               "Actual:\n"
+               "%s",
+               file_contents,
+               dump);
+      abort ();
+   }
+
+   free (file_contents);
+   free (dump);
+   free (reply);
+   kmip_parser_destroy (parser);
+}
+
 #define RUN_TEST(_func)        \
    do {                        \
       printf ("%s\n", #_func); \
       _func ();                \
+   } while (0)
+
+#define DUMP_TEST(_name)                               \
+   do {                                                \
+      printf ("test kmip_parser_dump (%s)\n", #_name); \
+      dump_test (_name, "test/" #_name ".txt");        \
    } while (0)
 
 int
@@ -697,6 +768,9 @@ main (void)
    RUN_TEST (test_descend_wrong_type);
    RUN_TEST (test_too_many_ascends);
    RUN_TEST (test_request_get);
+   DUMP_TEST (BIG_INT);
+   DUMP_TEST (BYTES);
+   DUMP_TEST (GET_REQUEST);
 
    return 0;
 }

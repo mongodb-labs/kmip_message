@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "kmip_message/hexlify.h"
 #include "kmip_message/kmip_message.h"
 #include "test_kmip.h"
 
@@ -22,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
 
 static void
 msg_test (uint8_t *expected, size_t expected_len, kmip_request_t *msg)
@@ -307,7 +307,8 @@ static void
 test_request_get (void)
 {
    size_t len;
-   /* see kmip_message spec v1.4 section 6 "message contents", and 7.2 "operations" */
+   /* see kmip_message spec v1.4 section 6 "message contents", and 7.2
+    * "operations" */
    uint8_t *expected = unhexlify (
       "420078"           /* request message tag */
       "01"               /* struct type */

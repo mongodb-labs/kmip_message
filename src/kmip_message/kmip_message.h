@@ -389,6 +389,12 @@ typedef enum {
    kmip_credential_type_attestation = 0x3
 } kmip_credential_type_t;
 
+char *
+kmip_get_type_name (kmip_obj_type_t type);
+
+char *
+kmip_get_tag_name (kmip_tag_t tag);
+
 #include "kmip_parser.h"
 #include "kmip_request.h"
 
