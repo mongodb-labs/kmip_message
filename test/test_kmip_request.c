@@ -368,36 +368,16 @@ test_request_get (void)
       /* END request payload, batch item, request message structs */
       &len);
 
+   kmip_get_request_t *get_request = kmip_get_request_new ();
    kmip_request_t *msg = kmip_request_new ();
-   assert (kmip_request_begin_struct (msg, kmip_tag_request_message));
-   assert (kmip_request_begin_struct (msg, kmip_tag_request_header));
-   assert (kmip_request_begin_struct (msg, kmip_tag_protocol_version));
-   assert (kmip_request_add_int (msg, kmip_tag_protocol_version_major, 1));
-   assert (kmip_request_add_int (msg, kmip_tag_protocol_version_minor, 2));
-   assert (kmip_request_end_struct (msg)); /* protocol_version */
-   assert (kmip_request_begin_struct (msg, kmip_tag_authentication));
-   assert (kmip_request_begin_struct (msg, kmip_tag_credential));
-   assert (kmip_request_add_enum (msg,
-                                  kmip_tag_credential_type,
-                                  kmip_credential_type_username_and_password));
-   assert (kmip_request_begin_struct (msg, kmip_tag_credential_value));
-   assert (kmip_request_add_text (msg, kmip_tag_username, (uint8_t *) "", 0));
-   assert (kmip_request_add_text (msg, kmip_tag_password, (uint8_t *) "", 0));
-   assert (kmip_request_end_struct (msg)); /* credential_value */
-   assert (kmip_request_end_struct (msg)); /* credential */
-   assert (kmip_request_end_struct (msg)); /* authentication */
-   assert (kmip_request_add_int (msg, kmip_tag_batch_count, 1));
-   assert (kmip_request_end_struct (msg)); /* request_header */
-   assert (kmip_request_begin_struct (msg, kmip_tag_batch_item));
-   assert (kmip_request_add_enum (msg, kmip_tag_operation, kmip_operation_get));
-   assert (kmip_request_begin_struct (msg, kmip_tag_request_payload));
-   assert (kmip_request_add_text (
-      msg, kmip_tag_unique_identifier, (uint8_t *) "1", 1));
-   assert (kmip_request_end_struct (msg)); /* request_payload */
-   assert (kmip_request_end_struct (msg)); /* batch_item */
-   assert (kmip_request_end_struct (msg)); /* request_message */
+
+   kmip_get_request_set_username (get_request, (uint8_t *) "", 0);
+   kmip_get_request_set_password (get_request, (uint8_t *) "", 0);
+   kmip_get_request_set_uid (get_request, (uint8_t *) "1", 1);
+   assert (kmip_get_request_write (get_request, msg));
    msg_test (expected, len, msg);
    kmip_request_destroy (msg);
+   kmip_get_request_destroy (get_request);
    free (expected);
 }
 

@@ -18,6 +18,7 @@
 #define KMIP_REQUEST_H
 
 typedef struct _kmip_request_t kmip_request_t;
+typedef struct _kmip_get_request_t kmip_get_request_t;
 
 KMIP_MSG_EXPORT (kmip_request_t *)
 kmip_request_new (void);
@@ -70,5 +71,23 @@ KMIP_MSG_EXPORT (bool)
 kmip_request_add_interval (kmip_request_t *msg,
                            kmip_request_tag_t tag,
                            kmip_msg_interval_t v);
+KMIP_MSG_EXPORT (kmip_get_request_t *)
+kmip_get_request_new (void);
+KMIP_MSG_EXPORT (void)
+kmip_get_request_destroy (kmip_get_request_t *get_request);
+KMIP_MSG_EXPORT (void)
+kmip_get_request_set_username (kmip_get_request_t *get_request,
+                               const uint8_t *username,
+                               uint32_t len);
+KMIP_MSG_EXPORT (void)
+kmip_get_request_set_password (kmip_get_request_t *get_request,
+                               const uint8_t *password,
+                               uint32_t len);
+KMIP_MSG_EXPORT (void)
+kmip_get_request_set_uid (kmip_get_request_t *get_request,
+                          const uint8_t *uid,
+                          uint32_t len);
+KMIP_MSG_EXPORT (bool)
+kmip_get_request_write (kmip_get_request_t *get_request, kmip_request_t *r);
 
 #endif /* KMIP_REQUEST_H */

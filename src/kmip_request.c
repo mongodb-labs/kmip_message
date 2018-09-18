@@ -38,6 +38,17 @@ struct _kmip_request_t {
    char error[512];
 };
 
+typedef struct {
+   const uint8_t *str;
+   uint32_t len;
+} kmip_request_str_t;
+
+struct _kmip_get_request_t {
+   kmip_request_str_t username;
+   kmip_request_str_t password;
+   kmip_request_str_t uid;
+};
+
 static inline void
 set_error (kmip_request_t *msg, const char *fmt, ...)
 {
@@ -121,6 +132,10 @@ static bool
 add_value (kmip_request_t *msg, uint32_t obj_len, const uint8_t *value)
 {
    uint32_t pad_len;
+
+   if (obj_len == 0) {
+      return true;
+   }
 
    memcpy (msg->pos, value, (size_t) obj_len);
    msg->pos += obj_len;
@@ -381,4 +396,91 @@ kmip_request_add_interval (kmip_request_t *msg,
    kmip_msg_int_t v_be = (kmip_msg_int_t) uint32_to_be ((uint32_t) v);
    return add_object (
       msg, tag, kmip_obj_type_interval, 4, (const uint8_t *) &v_be);
+}
+
+kmip_get_request_t *
+kmip_get_request_new (void)
+{
+   return calloc (sizeof (kmip_get_request_t), 1);
+}
+
+void
+kmip_get_request_destroy (kmip_get_request_t *get_request)
+{
+   free (get_request);
+}
+
+void
+kmip_get_request_set_username (kmip_get_request_t *get_request,
+                               const uint8_t *username,
+                               uint32_t len)
+{
+   get_request->username.str = username;
+   get_request->username.len = len;
+}
+
+void
+kmip_get_request_set_password (kmip_get_request_t *get_request,
+                               const uint8_t *password,
+                               uint32_t len)
+{
+   get_request->password.str = password;
+   get_request->password.len = len;
+}
+
+void
+kmip_get_request_set_uid (kmip_get_request_t *get_request,
+                          const uint8_t *uid,
+                          uint32_t len)
+{
+   get_request->uid.str = uid;
+   get_request->uid.len = len;
+}
+
+bool
+kmip_get_request_write (kmip_get_request_t *get_request, kmip_request_t *r)
+{
+   return (kmip_request_begin_struct (r, kmip_tag_request_message) &&
+           kmip_request_begin_struct (r, kmip_tag_request_header) &&
+           kmip_request_begin_struct (r, kmip_tag_protocol_version) &&
+           kmip_request_add_int (r, kmip_tag_protocol_version_major, 1) &&
+           kmip_request_add_int (r, kmip_tag_protocol_version_minor, 2) &&
+           kmip_request_end_struct (r) /* protocol_version */
+           &&
+           kmip_request_begin_struct (r, kmip_tag_authentication) &&
+           kmip_request_begin_struct (r, kmip_tag_credential) &&
+           kmip_request_add_enum (r,
+                                  kmip_tag_credential_type,
+                                  kmip_credential_type_username_and_password) &&
+           kmip_request_begin_struct (r, kmip_tag_credential_value) &&
+           kmip_request_add_text (r,
+                                  kmip_tag_username,
+                                  get_request->username.str,
+                                  get_request->username.len) &&
+           kmip_request_add_text (r,
+                                  kmip_tag_password,
+                                  get_request->password.str,
+                                  get_request->password.len) &&
+           kmip_request_end_struct (r) /* credential_value */
+           &&
+           kmip_request_end_struct (r) /* credential */
+           &&
+           kmip_request_end_struct (r) /* authentication */
+           &&
+           kmip_request_add_int (r, kmip_tag_batch_count, 1) &&
+           kmip_request_end_struct (r) /* request_header */
+           &&
+           kmip_request_begin_struct (r, kmip_tag_batch_item) &&
+           kmip_request_add_enum (r, kmip_tag_operation, kmip_operation_get) &&
+           kmip_request_begin_struct (r, kmip_tag_request_payload) &&
+           kmip_request_add_text (r,
+                                  kmip_tag_unique_identifier,
+                                  get_request->uid.str,
+                                  get_request->uid.len) &&
+           kmip_request_end_struct (r) /* request_payload */
+           &&
+           kmip_request_end_struct (r) /* batch_item */
+           &&
+           kmip_request_end_struct (r) /* request_message */
+           );
 }
