@@ -21,49 +21,49 @@
 
 typedef struct _kmip_parser_t kmip_parser_t;
 
-kmip_parser_t *
+KMIP_MSG_EXPORT (kmip_parser_t *)
 kmip_parser_new (void);
-kmip_parser_t *
+KMIP_MSG_EXPORT (kmip_parser_t *)
 kmip_parser_new_from_data (const uint8_t *data, uint32_t len);
-void
+KMIP_MSG_EXPORT (void)
 kmip_parser_destroy (kmip_parser_t *parser);
-const char *
+KMIP_MSG_EXPORT (const char *)
 kmip_parser_get_error (kmip_parser_t *parser);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_feed (kmip_parser_t *parser, const uint8_t *data, size_t len);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_next (kmip_parser_t *parser);
-kmip_tag_t
+KMIP_MSG_EXPORT (kmip_tag_t)
 kmip_parser_tag (kmip_parser_t *parser);
-kmip_obj_type_t
+KMIP_MSG_EXPORT (kmip_obj_type_t)
 kmip_parser_type (kmip_parser_t *parser);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_descend (kmip_parser_t *parser);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_ascend (kmip_parser_t *parser);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_read_int (kmip_parser_t *parser, kmip_msg_int_t *v);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_read_long (kmip_parser_t *parser, kmip_msg_long_t *v);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_read_big_int (kmip_parser_t *parser,
                           const uint8_t **v,
                           uint32_t *len);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_read_enum (kmip_parser_t *parser, kmip_msg_enum_t *v);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_read_bool (kmip_parser_t *parser, kmip_msg_bool_t *v);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_read_text (kmip_parser_t *parser, const uint8_t **v, uint32_t *len);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_read_bytes (kmip_parser_t *parser,
                         const uint8_t **v,
                         uint32_t *len);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_read_date_time (kmip_parser_t *parser, kmip_msg_date_time_t *v);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_parser_read_interval (kmip_parser_t *parser, kmip_msg_interval_t *v);
-char *
+KMIP_MSG_EXPORT (char *)
 kmip_parser_dump (kmip_parser_t *parser);
 
 #endif /* KMIP_PARSER_H */

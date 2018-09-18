@@ -7,6 +7,10 @@ project (kmip_message
 
 set (CMAKE_C_STANDARD 90)
 
+include (CheckCCompilerFlag)
+# All targets obey visibility, not just library targets.
+cmake_policy (SET CMP0063 NEW)
+set (CMAKE_C_VISIBILITY_PRESET hidden)
 add_library (
    kmip_message SHARED
    src/kmip_message/hexlify.h
@@ -26,7 +30,12 @@ if (KMIP_MSG_BIG_ENDIAN)
    target_compile_definitions (kmip_message -DKMIP_MSG_BIG_ENDIAN)
 endif ()
 
-target_include_directories (kmip_message PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_include_directories (
+   kmip_message PRIVATE
+   ${PROJECT_SOURCE_DIR}/src
+   ${CMAKE_CURRENT_BINARY_DIR}
+)
+
 set_target_properties (kmip_message PROPERTIES
    SOVERSION 0
    OUTPUT_NAME "kmip_message"
@@ -34,6 +43,7 @@ set_target_properties (kmip_message PROPERTIES
    INTERFACE_kmip_message_MAJOR_VERSION 0
 )
 
+target_compile_definitions (kmip_message PRIVATE KMIP_MSG_COMPILATION)
 set_property (TARGET kmip_message APPEND PROPERTY
    COMPATIBLE_INTERFACE_STRING kmip_message_MAJOR_VERSION
 )
@@ -111,7 +121,10 @@ add_executable (
 
 target_link_libraries (test_kmip_parser kmip_message)
 target_include_directories (
-   test_kmip_parser PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+   test_kmip_parser PRIVATE
+   ${CMAKE_CURRENT_SOURCE_DIR}/src
+   ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 add_executable (
    test_kmip_request
@@ -123,4 +136,7 @@ add_executable (
 
 target_link_libraries (test_kmip_request kmip_message)
 target_include_directories (
-   test_kmip_request PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+   test_kmip_request PRIVATE
+   ${CMAKE_CURRENT_SOURCE_DIR}/src
+   ${CMAKE_CURRENT_BINARY_DIR}
+)

@@ -19,54 +19,54 @@
 
 typedef struct _kmip_request_t kmip_request_t;
 
-kmip_request_t *
+KMIP_MSG_EXPORT (kmip_request_t *)
 kmip_request_new (void);
-void
+KMIP_MSG_EXPORT (void)
 kmip_request_destroy (kmip_request_t *msg);
-uint8_t *
+KMIP_MSG_EXPORT (uint8_t *)
 kmip_request_get_data (kmip_request_t *msg, uint32_t *len);
-const char *
+KMIP_MSG_EXPORT (const char *)
 kmip_request_get_error (kmip_request_t *msg);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_request_begin_struct (kmip_request_t *msg, kmip_request_tag_t tag);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_request_end_struct (kmip_request_t *msg);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_request_add_int (kmip_request_t *msg,
                       kmip_request_tag_t tag,
                       kmip_msg_int_t v);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_request_add_long (kmip_request_t *msg,
                        kmip_request_tag_t tag,
                        kmip_msg_long_t v);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_request_add_big_int (kmip_request_t *msg,
                           kmip_request_tag_t tag,
                           const uint8_t *v,
                           uint32_t len);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_request_add_enum (kmip_request_t *msg,
                        kmip_request_tag_t tag,
                        kmip_msg_enum_t v);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_request_add_bool (kmip_request_t *msg,
                        kmip_request_tag_t tag,
                        kmip_msg_bool_t v);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_request_add_text (kmip_request_t *msg,
                        kmip_request_tag_t tag,
                        const uint8_t *v,
                        uint32_t len);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_request_add_bytes (kmip_request_t *msg,
                         kmip_request_tag_t tag,
                         const uint8_t *v,
                         uint32_t len);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_request_add_date_time (kmip_request_t *msg,
                             kmip_request_tag_t tag,
                             kmip_msg_date_time_t v);
-bool
+KMIP_MSG_EXPORT (bool)
 kmip_request_add_interval (kmip_request_t *msg,
                            kmip_request_tag_t tag,
                            kmip_msg_interval_t v);

@@ -20,6 +20,28 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef _MSC_VER
+#ifdef KMIP_MSG_STATIC
+#define KMIP_MSG_API
+#elif defined(KMIP_MSG_COMPILATION)
+#define KMIP_MSG_API __declspec(dllexport)
+#else
+#define KMIP_MSG_API __declspec(dllimport)
+#endif
+#define KMIP_MSG_CALL __cdecl
+#elif defined(__GNUC__)
+#ifdef KMIP_MSG_STATIC
+#define KMIP_MSG_API
+#elif defined(KMIP_MSG_COMPILATION)
+#define KMIP_MSG_API __attribute__ ((visibility ("default")))
+#else
+#define KMIP_MSG_API
+#endif
+#define KMIP_MSG_CALL
+#endif
+
+#define KMIP_MSG_EXPORT(type) KMIP_MSG_API type KMIP_MSG_CALL
+
 typedef uint32_t kmip_request_tag_t;
 
 typedef int32_t kmip_msg_int_t;
